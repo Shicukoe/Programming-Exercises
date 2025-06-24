@@ -1,0 +1,54 @@
+/* Shared Header Styles */
+.header-banner {
+    display: flex;
+    align-items: center;
+    background-color: #4CAF50;
+    padding: 0.5rem 2rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.logo {
+    height: 50px;
+    margin-right: 15px;
+}
+@font-face {
+  font-family: 'Balonku';
+  src: url('BalonkuRegular-la1w.otf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap; /* Ensures text remains visible during load */
+}
+
+.header-title {
+  font-family: 'Balonku', cursive, sans-serif;
+  font-size: 2.5rem;
+  color: #4CAF50;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+  margin: 0;
+  flex-grow: 1;
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.nav-links a:hover {
+    background-color: rgba(255,255,255,0.2);
+}
+
+/* Make sure content doesn't hide behind fixed header */
+body {
+    padding-top: 70px;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
