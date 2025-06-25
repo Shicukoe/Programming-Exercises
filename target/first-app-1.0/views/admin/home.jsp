@@ -225,12 +225,9 @@
                             <td><fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy HH:mm"/></td>
                             <td><fmt:formatNumber value="${order.totalAmount}" type="currency"/></td>
                             <td>
-                                <select style="width:auto; min-width:80px; max-width:120px;" onchange="updateOrderStatus('${order.orderId}', this.value)">
-                                    <option value="pending" ${order.status == 'pending' ? 'selected' : ''}>Pending</option>
-                                    <option value="processing" ${order.status == 'processing' ? 'selected' : ''}>Processing</option>
-                                    <option value="completed" ${order.status == 'completed' ? 'selected' : ''}>Completed</option>
-                                    <option value="cancelled" ${order.status == 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                                </select>
+                                <span style="display:inline-block; min-width:80px; max-width:120px; padding:6px 12px; border-radius:4px; background:#f8f9fa; color:#333; font-weight:bold; text-align:center;">
+                                    ${order.status}
+                                </span>
                             </td>
                             <td>${order.shippingAddress}</td>
                             <td>${order.phone}</td>

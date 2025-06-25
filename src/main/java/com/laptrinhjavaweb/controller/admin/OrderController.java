@@ -50,27 +50,25 @@ public class OrderController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        // Enforce admin authentication (use session=false for security)
         HttpSession session = request.getSession(false);
         if (session == null || !"admin".equals(session.getAttribute("role"))) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-
+        String orderIdParam = request.getParameter("orderId");
+        String status = request.getParameter("status");
+        int orderId = -1;
         try {
-            int orderId = Integer.parseInt(request.getParameter("orderId"));
-            String status = request.getParameter("status");
-            
-            if (status != null && !status.isEmpty()) {
-                orderService.updateOrderStatus(orderId, status);
-                response.getWriter().write("success");
-            } else {
-                response.getWriter().write("error: status is required");
-            }
+            orderId = Integer.parseInt(orderIdParam);
         } catch (NumberFormatException e) {
-            response.getWriter().write("error: invalid order id");
-        } catch (IOException e) {
-            response.getWriter().write("error: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/admin-view-order?id=" + orderIdParam + "&errorMessage=Invalid+order+ID");
+            return;
+        }
+        if (status != null && !status.isEmpty()) {
+            orderService.updateOrderStatus(orderId, status);
+            response.sendRedirect(request.getContextPath() + "/admin-view-order?id=" + orderId + "&successMessage=Order+status+updated+to+" + status + "!");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/admin-view-order?id=" + orderId + "&errorMessage=Status+is+required");
         }
     }
 
@@ -80,6 +78,10 @@ public class OrderController extends HttpServlet {
         String servletPath = request.getServletPath();
         if ("/admin-view-order".equals(servletPath)) {
             String idParam = request.getParameter("id");
+            String successMessage = request.getParameter("successMessage");
+            String errorMessage = request.getParameter("errorMessage");
+            if (successMessage != null) request.setAttribute("successMessage", successMessage);
+            if (errorMessage != null) request.setAttribute("errorMessage", errorMessage);
             if (idParam != null) {
                 try {
                     int orderId = Integer.parseInt(idParam);

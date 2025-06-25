@@ -48,6 +48,16 @@
 <body>
     <div class="order-details-container">
         <h2>Order Details</h2>
+        <c:if test="${not empty successMessage}">
+            <div style="background:#d4edda; color:#155724; border:1px solid #c3e6cb; padding:10px 16px; border-radius:4px; margin-bottom:1rem;">
+                ${successMessage}
+            </div>
+        </c:if>
+        <c:if test="${not empty errorMessage}">
+            <div style="background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; padding:10px 16px; border-radius:4px; margin-bottom:1rem;">
+                ${errorMessage}
+            </div>
+        </c:if>
         <div>
             <strong>Order ID:</strong> ${order.orderId}<br>
             <strong>Customer:</strong> ${order.customerName}<br>
