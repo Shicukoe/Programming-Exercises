@@ -1,13 +1,9 @@
 package com.laptrinhjavaweb.controller.web;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.laptrinhjavaweb.model.CartItem;
 
 import jakarta.servlet.ServletException;
@@ -21,66 +17,68 @@ import jakarta.servlet.http.HttpSession;
 public class CartController extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final String CART_SESSION_KEY = "cart";
-    private final Gson gson = new Gson();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("application/json");
         List<CartItem> cart = getCart(req.getSession());
-        PrintWriter out = resp.getWriter();
-        out.print(gson.toJson(cart));
-        out.flush();
+        req.setAttribute("cart", cart);
+        req.getRequestDispatcher("/views/web/cart.jsp").forward(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/json");
         HttpSession session = req.getSession();
-        List<CartItem> cart = getCart(session);
+        List<CartItem> cart = (List<CartItem>) session.getAttribute(CART_SESSION_KEY);
+        if (cart == null) cart = new ArrayList<>();
 
-        StringBuilder sb = new StringBuilder();
-        try (BufferedReader reader = req.getReader()) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
-        }
-        String body = sb.toString();
-        if (body == null || body.isEmpty()) {
-            resp.getWriter().print(gson.toJson(cart));
-            return;
-        }
-        try {
-            var node = gson.fromJson(body, java.util.Map.class);
-            String action = (String) node.get("action");
-            if ("add".equals(action)) {
-                int id = ((Number) node.get("id")).intValue();
-                String name = (String) node.get("name");
-                double price = ((Number) node.get("price")).doubleValue();
-                boolean found = false;
+        String idStr = req.getParameter("id");
+        String action = req.getParameter("action");
+        if (idStr != null) {
+            int id = Integer.parseInt(idStr);
+            if ("increase".equals(action)) {
                 for (CartItem item : cart) {
                     if (item.getId() == id) {
                         item.setQuantity(item.getQuantity() + 1);
-                        found = true;
                         break;
                     }
                 }
-                if (!found) {
-                    CartItem newItem = new CartItem(id, name, price, 1);
-                    cart.add(newItem);
+            } else if ("decrease".equals(action)) {
+                for (int i = 0; i < cart.size(); i++) {
+                    CartItem item = cart.get(i);
+                    if (item.getId() == id) {
+                        if (item.getQuantity() > 1) {
+                            item.setQuantity(item.getQuantity() - 1);
+                        } else {
+                            cart.remove(i);
+                        }
+                        break;
+                    }
                 }
-            } else if ("remove".equals(action)) {
-                int index = ((Number) node.get("index")).intValue();
-                if (index >= 0 && index < cart.size()) {
-                    cart.remove(index);
+            } else if ("delete".equals(action)) {
+                cart.removeIf(item -> item.getId() == id);
+            } else {
+                // Default: add to cart (from shopping.jsp)
+                String name = req.getParameter("name");
+                String priceStr = req.getParameter("price");
+                if (name != null && priceStr != null) {
+                    double price = Double.parseDouble(priceStr);
+                    boolean found = false;
+                    for (CartItem item : cart) {
+                        if (item.getId() == id) {
+                            item.setQuantity(item.getQuantity() + 1);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        cart.add(new CartItem(id, name, price, 1));
+                    }
                 }
             }
-            // Save cart back to session
-            session.setAttribute(CART_SESSION_KEY, cart);
-        } catch (JsonSyntaxException e) {
-            // Ignore and return current cart
         }
-        resp.getWriter().print(gson.toJson(cart));
+        session.setAttribute(CART_SESSION_KEY, cart);
+        resp.sendRedirect(req.getContextPath() + "/views/web/cart.jsp");
     }
 
     @SuppressWarnings("unchecked")

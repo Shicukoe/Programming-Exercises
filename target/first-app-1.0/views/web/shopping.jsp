@@ -50,26 +50,6 @@
             border-radius: 4px;
             margin-bottom: 10px;
         }
-        .cart-icon {
-            position: relative;
-            cursor: pointer;
-            font-size: 24px;
-        }
-        .cart-count {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: red;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 12px;
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
         .btn {
             background: #4CAF50;
             color: white;
@@ -81,48 +61,41 @@
         .btn:hover {
             background: #45a049;
         }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-        }
-        .modal-content {
-            background: white;
-            margin: 15% auto;
-            padding: 20px;
-            width: 70%;
-            max-width: 500px;
-            border-radius: 8px;
-        }
-        .close {
-            float: right;
+        .cart-icon {
             cursor: pointer;
-            font-size: 24px;
+            position: relative;
+            display: inline-block;
+            margin-right: 1rem;
+        }
+        .cart-count {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.8rem;
         }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Monito Pet Shop - Customer</h1>
-    <div class="user-info">
-        <div class="cart-icon" onclick="showCart()">
-            🛒 <span class="cart-count" id="cartCount">0</span>
+        <div class="user-info">
+            <c:choose>
+                <c:when test="${not empty sessionScope.username}">
+                    <span>Welcome, ${sessionScope.username}!</span>
+                    <a href="${pageContext.request.contextPath}/logout" class="btn">Logout</a>
+                </c:when>
+                <c:otherwise>
+                    <a href="${pageContext.request.contextPath}/login" class="btn">Login</a>
+                </c:otherwise>
+            </c:choose>
         </div>
-
-        <c:choose>
-            <c:when test="${not empty sessionScope.username}">
-                <span>Welcome, ${sessionScope.username}!</span>
-                <a href="${pageContext.request.contextPath}/logout" class="btn">Logout</a>
-            </c:when>
-            <c:otherwise>
-                <a href="${pageContext.request.contextPath}/login" class="btn">Login</a>
-            </c:otherwise>
-        </c:choose>
-        </div>
+    </div>
+    <div style="text-align:center; margin: 2rem 0;">
+        <a href="${pageContext.request.contextPath}/cart" class="btn" style="font-size:1.2rem; padding: 14px 32px; background: #ff9800; color: white; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-weight: bold; letter-spacing: 1px;">🛒 View Cart</a>
     </div>
 
     <div class="container">
@@ -148,139 +121,18 @@
                         <p>Breed: ${pet.breed}</p>
                         <p>Age: ${pet.age} months</p>
                         <p>Gender: ${pet.gender}</p>
-                        <p>Price: $<fmt:formatNumber value="${pet.price}" pattern="#,##0.00"/></p>                       
-                        <button class="btn" onclick="addToCart('${pet.petId}', '${pet.name}', '${pet.price}')">
-                            Add to Cart
-                        </button>
+                        <p>Price: $<fmt:formatNumber value="${pet.price}" pattern="#.00"/></p>                       
+                        <form action="${pageContext.request.contextPath}/cart" method="post" style="margin-top:10px;">
+                            <input type="hidden" name="id" value="${pet.petId}" />
+                            <input type="hidden" name="name" value="${pet.name}" />
+                            <input type="hidden" name="price" value="${pet.price}" />
+                            <button class="btn" type="submit">Add to Cart</button>
+                        </form>
                     </div>
                 </c:forEach>
             </div>
         </div>
     </div>
 
-    <!-- Cart Modal -->
-    <div id="cartModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeCart()">&times;</span>
-            <h2>Shopping Cart</h2>
-            <div id="cartItems"></div>
-            <div id="cartTotal"></div>
-            <button class="btn" onclick="checkout()">Checkout</button>
-        </div>
-    </div>
-
-    <form id="checkoutForm" action="${pageContext.request.contextPath}/checkout" method="post" style="display:none;">
-        <!-- No hidden cartData input needed, cart is managed server-side -->
-    </form>
-
-    <script>
-        // Cart management using server session via AJAX
-        let cart = [];
-
-        // Fetch cart from server on page load
-        function fetchCart() {
-            fetch('${pageContext.request.contextPath}/cart?action=get')
-                .then(response => response.json())
-                .then(data => {
-                    cart = data || [];
-                    updateCartDisplay();
-                });
-        }
-
-        function updateCartDisplay() {
-            document.getElementById('cartCount').textContent = cart.length;
-        }
-
-        function addToCart(id, name, price) {
-            id = Number(id);
-            price = parseFloat(price);
-            fetch('${pageContext.request.contextPath}/cart', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'add', id, name, price })
-            })
-            .then(response => response.json())
-            .then(data => {
-                cart = data;
-                updateCartDisplay();
-                alert(name + ' added to cart!');
-            });
-        }
-
-        function showCart() {
-            const modal = document.getElementById('cartModal');
-            const items = document.getElementById('cartItems');
-            const total = document.getElementById('cartTotal');
-
-            // Use template literal for table rendering
-            items.innerHTML = `
-                <table style="width:100%; border-collapse:collapse;">
-                    <thead>
-                        <tr>
-                            <th style="text-align:left;">Pet Name</th>
-                            <th style="text-align:right;">Price</th>
-                            <th style="text-align:right;">Quantity</th>
-                            <th style="text-align:right;">Subtotal</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${cart.map((item, idx) => {
-                            const itemTotal = (item.price * item.quantity).toFixed(2);
-                            return `
-                                <tr>
-                                    <td>${item.name}</td>
-                                    <td style="text-align:right;">$${item.price.toFixed(2)}</td>
-                                    <td style="text-align:right;">${item.quantity}</td>
-                                    <td style="text-align:right;">$${itemTotal}</td>
-                                    <td><button onclick="removeFromCart(${idx})" class="btn" style="padding:2px 8px;">Remove</button></td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            `;
-
-            const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            total.textContent = `Total: $${totalAmount.toFixed(2)}`;
-            modal.style.display = 'block';
-        }
-
-        function closeCart() {
-            document.getElementById('cartModal').style.display = 'none';
-        }
-
-        function removeFromCart(index) {
-            fetch('${pageContext.request.contextPath}/cart', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'remove', index })
-            })
-            .then(response => response.json())
-            .then(data => {
-                cart = data;
-                updateCartDisplay();
-                showCart();
-            });
-        }
-
-        function checkout() {
-            if (cart.length === 0) {
-                alert('Your cart is empty!');
-                return;
-            }
-            // Go to checkout page (server will use session cart)
-            window.location.href = '${pageContext.request.contextPath}/checkout';
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('cartModal')) {
-                closeCart();
-            }
-        }
-
-        fetchCart();
-    </script>
 </body>
 </html>

@@ -23,7 +23,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .container {
-            max-width: 1200px;
+            max-width: 1500px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
@@ -51,6 +51,13 @@
             padding: 2rem;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width:1350px;
+            margin: 0 auto;
+            align: center;
+            /* Add min-width for orders tab */
+        }
+        #orders.tab-content {
+            min-width: 900px;
         }
         .tab-content.active {
             display: block;
@@ -101,7 +108,7 @@
         .actions {
             display: flex;
             flex-direction: row;
-            gap: 0.5rem;
+            gap: 0.25rem;
             align-items: center;
             justify-content: center;
             background: #fff;
@@ -322,17 +329,12 @@
 
         // Order status update
         function updateOrderStatus(orderId, status) {
-            console.log('Updating order:', orderId, 'to status:', status); // Debug log
-            if (!orderId || isNaN(orderId)) {
-                alert('Invalid order ID!');
-                return;
-            }
             fetch('${pageContext.request.contextPath}/admin-update-order', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: `orderId=${encodeURIComponent(orderId)}&status=${encodeURIComponent(status)}`
+                body: `orderId=${orderId}&status=${status}`
             })
             .then(response => response.text())
             .then(result => {
