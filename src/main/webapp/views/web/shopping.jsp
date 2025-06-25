@@ -170,89 +170,117 @@
     </div>
 
     <form id="checkoutForm" action="${pageContext.request.contextPath}/checkout" method="post" style="display:none;">
-        <input type="hidden" name="cartData" id="cartDataInput">
+        <!-- No hidden cartData input needed, cart is managed server-side -->
     </form>
 
     <script>
-        // Cart management using sessionStorage
-        let cart = JSON.parse(sessionStorage.getItem('cart') || '[]').map(item => ({
-            ...item,
-            price: Number(item.price),
-            quantity: Number(item.quantity)
-        }));
-        
+        // Cart management using server session via AJAX
+        let cart = [];
+
+        // Fetch cart from server on page load
+        function fetchCart() {
+            fetch('${pageContext.request.contextPath}/cart?action=get')
+                .then(response => response.json())
+                .then(data => {
+                    cart = data || [];
+                    updateCartDisplay();
+                });
+        }
+
         function updateCartDisplay() {
             document.getElementById('cartCount').textContent = cart.length;
         }
-        
+
         function addToCart(id, name, price) {
-            id = Number(id); // Ensure id is a number
-            price = parseFloat(price); // Ensure price is a number
-            // Check if item already exists in cart
-            const existingItem = cart.find(item => Number(item.id) === id);
-            if (existingItem) {
-                existingItem.quantity++;
-            } else {
-                cart.push({id, name, price, quantity: 1});
-            }
-            sessionStorage.setItem('cart', JSON.stringify(cart));
-            updateCartDisplay();
-            alert(name + ' added to cart!');
+            id = Number(id);
+            price = parseFloat(price);
+            fetch('${pageContext.request.contextPath}/cart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'add', id, name, price })
+            })
+            .then(response => response.json())
+            .then(data => {
+                cart = data;
+                updateCartDisplay();
+                alert(name + ' added to cart!');
+            });
         }
-        
+
         function showCart() {
             const modal = document.getElementById('cartModal');
             const items = document.getElementById('cartItems');
             const total = document.getElementById('cartTotal');
-            
-            items.innerHTML = cart.map(item => {
-                const itemTotal = (item.price * item.quantity).toFixed(2);
-                return `
-                    <div class="cart-item" style="display: flex; justify-content: space-between; margin: 10px 0; padding: 10px; border-bottom: 1px solid #ddd;">
-                        <span>${item.name}</span>
-                        <span>Quantity: ${item.quantity}</span>
-                        <span>$${itemTotal}</span>
-                        <button onclick="removeFromCart(${cart.indexOf(item)})" class="btn" style="padding: 2px 8px;">Remove</button>
-                    </div>
-                `;
-            }).join('');
-            
+
+            // Use template literal for table rendering
+            items.innerHTML = `
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left;">Pet Name</th>
+                            <th style="text-align:right;">Price</th>
+                            <th style="text-align:right;">Quantity</th>
+                            <th style="text-align:right;">Subtotal</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${cart.map((item, idx) => {
+                            const itemTotal = (item.price * item.quantity).toFixed(2);
+                            return `
+                                <tr>
+                                    <td>${item.name}</td>
+                                    <td style="text-align:right;">$${item.price.toFixed(2)}</td>
+                                    <td style="text-align:right;">${item.quantity}</td>
+                                    <td style="text-align:right;">$${itemTotal}</td>
+                                    <td><button onclick="removeFromCart(${idx})" class="btn" style="padding:2px 8px;">Remove</button></td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+
             const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             total.textContent = `Total: $${totalAmount.toFixed(2)}`;
             modal.style.display = 'block';
         }
-        
+
         function closeCart() {
             document.getElementById('cartModal').style.display = 'none';
         }
-        
+
         function removeFromCart(index) {
-            cart.splice(index, 1);
-            sessionStorage.setItem('cart', JSON.stringify(cart));
-            updateCartDisplay();
-            showCart(); // Refresh cart display
+            fetch('${pageContext.request.contextPath}/cart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'remove', index })
+            })
+            .then(response => response.json())
+            .then(data => {
+                cart = data;
+                updateCartDisplay();
+                showCart();
+            });
         }
-        
+
         function checkout() {
             if (cart.length === 0) {
                 alert('Your cart is empty!');
                 return;
             }
-            // Save cart to sessionStorage (for persistence)
-            sessionStorage.setItem('cart', JSON.stringify(cart));
-            // Set cart JSON in hidden form and submit
-            document.getElementById('cartDataInput').value = JSON.stringify(cart);
-            document.getElementById('checkoutForm').submit();
+            // Go to checkout page (server will use session cart)
+            window.location.href = '${pageContext.request.contextPath}/checkout';
         }
-        
+
         // Close modal when clicking outside
         window.onclick = function(event) {
             if (event.target == document.getElementById('cartModal')) {
                 closeCart();
             }
         }
-        
-        updateCartDisplay();
+
+        fetchCart();
     </script>
 </body>
 </html>

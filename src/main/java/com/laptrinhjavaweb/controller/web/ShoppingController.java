@@ -68,13 +68,7 @@ public class ShoppingController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        // Handle any POST requests (e.g., adding to cart via AJAX)
-        String action = request.getParameter("action");
-        
-        if ("add-to-cart".equals(action)) {
-            // This will be handled by client-side JavaScript using sessionStorage
-            response.setContentType("application/json");
-            response.getWriter().write("{\"status\": \"success\"}");
-        }
+        // No cart logic needed here. All cart management is done client-side.
+        // You can handle other POST actions here if needed in the future.
     }
 }

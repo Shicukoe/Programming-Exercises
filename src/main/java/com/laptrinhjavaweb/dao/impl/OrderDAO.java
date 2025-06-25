@@ -30,17 +30,35 @@ public class OrderDAO extends AbstractDAO<Order> implements iOrderDAO {
 
     @Override
     public void createOrder(Order order) {
-        String sql = "INSERT INTO Orders (customer_name, total_amount, status, shipping_address, phone, email) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Orders (customer_name, full_name, shipping_address, phone, email, total_amount, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
         Connection conn = connect();
         try {
-            PreparedStatement stmt = conn.prepareStatement(sql);
+            PreparedStatement stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             stmt.setString(1, order.getCustomerName());
-            stmt.setDouble(2, order.getTotalAmount());
-            stmt.setString(3, "pending"); // Default status
-            stmt.setString(4, order.getShippingAddress());
-            stmt.setString(5, order.getPhone());
-            stmt.setString(6, order.getEmail());
+            stmt.setString(2, order.getFullName());
+            stmt.setString(3, order.getShippingAddress());
+            stmt.setString(4, order.getPhone());
+            stmt.setString(5, order.getEmail());
+            stmt.setDouble(6, order.getTotalAmount());
+            stmt.setString(7, order.getStatus() != null ? order.getStatus() : "pending");
             stmt.executeUpdate();
+            ResultSet generatedKeys = stmt.getGeneratedKeys();
+            int orderId = -1;
+            if (generatedKeys.next()) {
+                orderId = generatedKeys.getInt(1);
+            }
+            // Insert order details
+            if (order.getOrderDetails() != null && orderId != -1) {
+                String detailSql = "INSERT INTO OrderDetails (order_id, pet_id, quantity, price_at_time) VALUES (?, ?, ?, ?)";
+                for (OrderDetail detail : order.getOrderDetails()) {
+                    PreparedStatement detailStmt = conn.prepareStatement(detailSql);
+                    detailStmt.setInt(1, orderId);
+                    detailStmt.setInt(2, detail.getPetId());
+                    detailStmt.setInt(3, detail.getQuantity());
+                    detailStmt.setDouble(4, detail.getPriceAtTime());
+                    detailStmt.executeUpdate();
+                }
+            }
         } catch (SQLException e) {
             System.out.println("Failed to create order: " + e.getMessage());
         }
@@ -67,6 +85,7 @@ public class OrderDAO extends AbstractDAO<Order> implements iOrderDAO {
     }
 
     // New: Get order items for an order
+    @Override
     public List<OrderDetail> findOrderItems(int orderId) {
         List<OrderDetail> items = new ArrayList<>();
         String sql = "SELECT * FROM OrderDetails WHERE order_id = ?";
@@ -87,6 +106,7 @@ public class OrderDAO extends AbstractDAO<Order> implements iOrderDAO {
     }
 
     // New: Delete order and its items
+    @Override
     public void deleteOrderWithItems(int orderId) {
         Connection conn = connect();
         try {

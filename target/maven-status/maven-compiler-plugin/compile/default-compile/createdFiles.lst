@@ -19,7 +19,6 @@ com\laptrinhjavaweb\dao\impl\PetDAO.class
 com\laptrinhjavaweb\controller\web\LoginController.class
 com\laptrinhjavaweb\mapper\PetMapper.class
 com\laptrinhjavaweb\model\Users.class
-com\laptrinhjavaweb\controller\web\CheckoutController$1.class
 com\laptrinhjavaweb\filter\AuthFilter.class
 com\laptrinhjavaweb\dao\impl\OrderDAO.class
 com\laptrinhjavaweb\dao\impl\UserDAO.class
@@ -30,5 +29,6 @@ com\laptrinhjavaweb\controller\web\CheckoutController.class
 com\laptrinhjavaweb\dao\impl\AbstractDAO.class
 com\laptrinhjavaweb\mapper\UserMapper.class
 com\laptrinhjavaweb\model\Pet.class
+com\laptrinhjavaweb\controller\web\CartController.class
 com\laptrinhjavaweb\mapper\RowMapper.class
 com\laptrinhjavaweb\controller\admin\HomeController.class

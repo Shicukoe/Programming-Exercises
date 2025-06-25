@@ -41,6 +41,13 @@ public class EditController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Enforce admin authentication
+        HttpSession session = request.getSession(false);
+        if (session == null || !"admin".equals(session.getAttribute("role"))) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
         String idParam = request.getParameter("id");
         try {
             int id = Integer.parseInt(idParam);
@@ -61,12 +68,12 @@ public class EditController extends HttpServlet {
     
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Check if user is logged in as admin
-        HttpSession session = request.getSession();
-        // if (session == null || !"admin".equals(session.getAttribute("role"))) {
-        //     response.sendRedirect(request.getContextPath() + "/login");
-        //     return;
-        // }
+        // Enforce admin authentication
+        HttpSession session = request.getSession(false);
+        if (session == null || !"admin".equals(session.getAttribute("role"))) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
 
         try {
             // Set character encoding for proper UTF-8 handling

@@ -12,6 +12,7 @@ public class Order extends AbstractClass<Order> {
     private String shippingAddress;
     private String phone;
     private String email;
+    private String fullName;
     private List<OrderDetail> orderDetails;
 
     public int getOrderId() {
@@ -76,6 +77,14 @@ public class Order extends AbstractClass<Order> {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     public List<OrderDetail> getOrderDetails() {

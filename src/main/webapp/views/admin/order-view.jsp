@@ -82,9 +82,9 @@
             <tbody>
                 <c:forEach var="item" items="${orderItems}">
                     <tr>
-                        <td>${item.petName}</td>
-                        <td>${item.petType}</td>
-                        <td>${item.petBreed}</td>
+                        <td>${petMap[item.petId].name}</td>
+                        <td>${petMap[item.petId].type}</td>
+                        <td>${petMap[item.petId].breed}</td>
                         <td><fmt:formatNumber value="${item.priceAtTime}" type="currency"/></td>
                         <td>${item.quantity}</td>
                         <td><fmt:formatNumber value="${item.priceAtTime * item.quantity}" type="currency"/></td>

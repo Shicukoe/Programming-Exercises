@@ -27,6 +27,7 @@ public class AddController extends HttpServlet {
     public void init() {
         if (petService == null) {
             petService = new com.laptrinhjavaweb.service.impl.NewService();
+            // Manually inject petDAO dependency as well
             try {
                 java.lang.reflect.Field petDaoField = petService.getClass().getDeclaredField("petDAO");
                 petDaoField.setAccessible(true);
@@ -39,6 +40,12 @@ public class AddController extends HttpServlet {
     
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Enforce admin authentication
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        if (session == null || !"admin".equals(session.getAttribute("role"))) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
         RequestDispatcher rd = request.getRequestDispatcher("/views/admin/create.jsp");
 			rd.forward(request, response);     
         
@@ -47,6 +54,12 @@ public class AddController extends HttpServlet {
     @Override
     @SuppressWarnings("UnnecessaryTemporaryOnConversionFromString")
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Enforce admin authentication
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        if (session == null || !"admin".equals(session.getAttribute("role"))) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
         Pet petAdd = new Pet();
         request.setCharacterEncoding("UTF-8");
         petAdd.setName(request.getParameter("name"));
@@ -61,6 +74,7 @@ public class AddController extends HttpServlet {
         petAdd.setAge(Integer.parseInt(request.getParameter("age")));
         petAdd.setGender(request.getParameter("gender"));
         petAdd.setDescription(request.getParameter("description"));
+        petAdd.setAddedBy(request.getParameter("addedBy"));
 
         // Handle image upload
         Part imagePart = request.getPart("image");
@@ -68,8 +82,6 @@ public class AddController extends HttpServlet {
             byte[] imageBytes = imagePart.getInputStream().readAllBytes();
             petAdd.setImage(imageBytes);
         }
-        // Set addedBy from request parameter (or session if needed)
-        petAdd.setAddedBy(request.getParameter("addedBy"));
 
         try {
             petService.save(petAdd);

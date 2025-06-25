@@ -12,6 +12,7 @@ public class OrderMapper implements RowMapper<Order> {
             Order order = new Order();
             order.setOrderId(resultSet.getInt("order_id"));
             order.setCustomerName(resultSet.getString("customer_name"));
+            order.setFullName(resultSet.getString("full_name"));
             order.setTotalAmount(resultSet.getDouble("total_amount"));
             order.setOrderDate(resultSet.getTimestamp("order_date"));
             order.setStatus(resultSet.getString("status"));

@@ -1,10 +1,16 @@
 package com.laptrinhjavaweb.controller.admin;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.laptrinhjavaweb.dao.iPetDAO;
 import com.laptrinhjavaweb.model.Order;
 import com.laptrinhjavaweb.model.OrderDetail;
+import com.laptrinhjavaweb.model.Pet;
 import com.laptrinhjavaweb.service.iOrderService;
 
 import jakarta.inject.Inject;
@@ -20,6 +26,9 @@ public class OrderController extends HttpServlet {
     
     @Inject
     private iOrderService orderService;
+
+    @Inject
+    private iPetDAO petDAO;
 
     @Override
     public void init() {
@@ -38,9 +47,8 @@ public class OrderController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        
-        // Check if user is logged in as admin
-        HttpSession session = request.getSession();
+        // Enforce admin authentication (use session=false for security)
+        HttpSession session = request.getSession(false);
         if (session == null || !"admin".equals(session.getAttribute("role"))) {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
@@ -66,18 +74,24 @@ public class OrderController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Remove redundant admin check, AuthFilter will handle it
         String servletPath = request.getServletPath();
         if ("/admin-view-order".equals(servletPath)) {
             String idParam = request.getParameter("id");
             if (idParam != null) {
                 try {
                     int orderId = Integer.parseInt(idParam);
-                    // Use getOrderById and getOrderItems
                     Order order = orderService.getOrderById(orderId);
                     List<OrderDetail> orderItems = orderService.getOrderItems(orderId);
+                    // Build petMap for JSP
+                    Set<Integer> petIds = orderItems.stream().map(OrderDetail::getPetId).collect(Collectors.toSet());
+                    Map<Integer, Pet> petMap = new HashMap<>();
+                    for (Integer petId : petIds) {
+                        Pet pet = petDAO.findById(petId);
+                        if (pet != null) petMap.put(petId, pet);
+                    }
                     request.setAttribute("order", order);
                     request.setAttribute("orderItems", orderItems);
+                    request.setAttribute("petMap", petMap);
                     request.getRequestDispatcher("/views/admin/order-view.jsp").forward(request, response);
                 } catch (NumberFormatException e) {
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid order ID");

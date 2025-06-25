@@ -145,9 +145,9 @@
 
     <div class="container">
         <div class="tabs">
-            <button class="tab active" data-tab="inventory">Pet Inventory</button>
-            <button class="tab" data-tab="orders">Orders</button>
-            <button class="tab" data-tab="add-pet">Add Pet</button>
+            <button type="button" class="tab active" data-tab="inventory">Pet Inventory</button>
+            <button type="button" class="tab" data-tab="orders">Orders</button>
+            <button type="button" class="tab" data-tab="add-pet">Add Pet</button>
         </div>
 
         <!-- Inventory Tab -->
@@ -322,12 +322,17 @@
 
         // Order status update
         function updateOrderStatus(orderId, status) {
+            console.log('Updating order:', orderId, 'to status:', status); // Debug log
+            if (!orderId || isNaN(orderId)) {
+                alert('Invalid order ID!');
+                return;
+            }
             fetch('${pageContext.request.contextPath}/admin-update-order', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: `orderId=${orderId}&status=${status}`
+                body: `orderId=${encodeURIComponent(orderId)}&status=${encodeURIComponent(status)}`
             })
             .then(response => response.text())
             .then(result => {

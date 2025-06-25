@@ -21,7 +21,7 @@
             margin-bottom: 5px;
             font-weight: bold;
         }
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
@@ -63,97 +63,60 @@
         <c:if test="${not empty errorMessage}">
             <div class="error">${errorMessage}</div>
         </c:if>
-        
-        <form action="${pageContext.request.contextPath}/checkout" method="post">
+        <form id="checkoutForm" action="${pageContext.request.contextPath}/checkout" method="post">
             <div class="form-group">
                 <label for="fullName">Full Name *</label>
                 <input type="text" id="fullName" name="fullName" required>
             </div>
-            
             <div class="form-group">
                 <label for="email">Email *</label>
                 <input type="email" id="email" name="email" required>
             </div>
-            
             <div class="form-group">
                 <label for="phone">Phone *</label>
                 <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" required>
             </div>
-            
             <div class="form-group">
                 <label for="address">Shipping Address *</label>
                 <input type="text" id="address" name="address" required>
             </div>
-            
-            <div class="form-group">
-                <label for="birthday">Birthday *</label>
-                <input type="date" id="birthday" name="birthday" required>
-            </div>
-            
+            <input type="hidden" name="cartData" id="cartDataInput">
             <div class="order-summary">
                 <h3>Order Summary</h3>
-                <div id="orderItems"></div>
-                <div id="orderTotal" style="font-weight: bold; text-align: right; margin-top: 10px;"></div>
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left;">Pet Name</th>
+                            <th style="text-align:right;">Price</th>
+                            <th style="text-align:right;">Quantity</th>
+                            <th style="text-align:right;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <c:forEach var="item" items="${cart}">
+                            <tr>
+                                <td>${item.name}</td>
+                                <td style="text-align:right;"><fmt:formatNumber value="${item.price}" type="currency"/></td>
+                                <td style="text-align:right;">${item.quantity}</td>
+                                <td style="text-align:right;"><fmt:formatNumber value="${item.price * item.quantity}" type="currency"/></td>
+                            </tr>
+                        </c:forEach>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="text-align:right;"><b>Total:</b></td>
+                            <td style="text-align:right;"><fmt:formatNumber value="${totalPrice}" type="currency"/></td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
-            
-            <button type="submit" class="btn">Place Order</button>
+            <button type="submit" class="btn">Continue to Summary</button>
         </form>
     </div>
-    
     <script>
-        // Display cart items from sessionStorage
-        const cart = JSON.parse(sessionStorage.getItem('cart') || '[]').map(item => ({
-            ...item,
-            price: Number(item.price),
-            quantity: Number(item.quantity)
-        }));
-        const orderItems = document.getElementById('orderItems');
-        const orderTotal = document.getElementById('orderTotal');
-        
-        let total = 0;
-        orderItems.innerHTML = cart.map(item => {
-            const itemTotal = item.price * item.quantity;
-            total += itemTotal;
-            return `<div class="order-item">
-                <span>${item.name} x ${item.quantity}</span>
-                <span>$${itemTotal.toFixed(2)}</span>
-            </div>`;
-        }).join('');
-        
-        orderTotal.textContent = `Total: $${total.toFixed(2)}`;
-        
-        // Redirect if cart is empty
-        if (cart.length === 0) {
-            alert('Your cart is empty!');
-            window.location.href = '${pageContext.request.contextPath}/shopping';
-        }
-        
-        // Show success notification after placing order
-        document.querySelector('form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            // Simulate order placement (in real app, let server handle and redirect)
-            sessionStorage.removeItem('cart');
-            const modal = document.createElement('div');
-            modal.style.position = 'fixed';
-            modal.style.top = 0;
-            modal.style.left = 0;
-            modal.style.width = '100vw';
-            modal.style.height = '100vh';
-            modal.style.background = 'rgba(0,0,0,0.5)';
-            modal.style.display = 'flex';
-            modal.style.alignItems = 'center';
-            modal.style.justifyContent = 'center';
-            modal.innerHTML = `
-                <div style="background: white; padding: 2rem 3rem; border-radius: 8px; text-align: center;">
-                    <h2>Order placed successfully!</h2>
-                    <button id="okBtn" style="margin-top: 1rem; padding: 0.5rem 2rem; background: #4CAF50; color: white; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer;">OK</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            document.getElementById('okBtn').onclick = function() {
-                window.location.href = '${pageContext.request.contextPath}/shopping';
-            };
-        });
+        // On page load, set cartDataInput value from sessionStorage
+        const cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+        document.getElementById('cartDataInput').value = JSON.stringify(cart);
     </script>
 </body>
 </html>

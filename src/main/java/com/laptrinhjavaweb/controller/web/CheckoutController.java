@@ -2,13 +2,9 @@ package com.laptrinhjavaweb.controller.web;
 
 import java.io.IOException;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.laptrinhjavaweb.dao.iOrderDAO;
 import com.laptrinhjavaweb.dao.iUserDAO;
 import com.laptrinhjavaweb.model.CartItem;
-import com.laptrinhjavaweb.model.Order;
-import com.laptrinhjavaweb.model.Users;
 
 import jakarta.inject.Inject;
 import jakarta.servlet.RequestDispatcher;
@@ -41,6 +37,18 @@ public class CheckoutController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        java.util.List<CartItem> cart = (java.util.List<CartItem>) session.getAttribute("cart");
+        double total = 0.0;
+        if (cart == null || cart.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/shopping?error=emptycart");
+            return;
+        }
+        for (CartItem item : cart) {
+            total += item.getPrice() * item.getQuantity();
+        }
+        request.setAttribute("cart", cart);
+        request.setAttribute("totalPrice", total);
         RequestDispatcher rd = request.getRequestDispatcher("/views/web/checkout.jsp");
         rd.forward(request, response);
     }
@@ -52,49 +60,60 @@ public class CheckoutController extends HttpServlet {
         String email = request.getParameter("email");
         String phone = request.getParameter("phone");
         String address = request.getParameter("address");
-        String cartJson = request.getParameter("cartData");
-        java.util.List<CartItem> cart = null;
-        if (cartJson != null && !cartJson.isEmpty()) {
-            Gson gson = new Gson();
-            cart = gson.fromJson(cartJson, new TypeToken<java.util.List<CartItem>>(){}.getType());
-        } else {
-            // fallback to session cart if not provided
-            HttpSession session = request.getSession();
-            cart = (java.util.List<CartItem>) session.getAttribute("cart");
+        HttpSession session = request.getSession();
+        java.util.List<CartItem> cart = (java.util.List<CartItem>) session.getAttribute("cart");
+        if (cart == null || cart.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/shopping?error=emptycart");
+            return;
         }
-        // Create or update user
-        Users customer = new Users();
-        customer.setUsername(email); // Use email as username
-        customer.setFullName(fullName);
-        customer.setEmail(email);
-        customer.setPhone(phone);
-        if (!userDAO.checkUsernameExists(email)) {
-            userDAO.createCustomer(customer);
+        // Check if user exists by email, if not, create
+        com.laptrinhjavaweb.model.Users user = null;
+        for (com.laptrinhjavaweb.model.Users u : userDAO.getAllCustomers()) {
+            if (u.getEmail() != null && u.getEmail().equalsIgnoreCase(email)) {
+                user = u;
+                break;
+            }
+        }
+        if (user == null) {
+            user = new com.laptrinhjavaweb.model.Users();
+            user.setEmail(email);
+            user.setFullName(fullName);
+            user.setAddress(address);
+            user.setPhone(phone);
+            user.setRole("customer");
+            // Generate a username and password for guest (or leave blank/null)
+            user.setUsername(email);
+            user.setPassword("");
+            userDAO.createCustomer(user);
         }
         // Create order
-        Order order = new Order();
-        order.setCustomerName(email);
+        com.laptrinhjavaweb.model.Order order = new com.laptrinhjavaweb.model.Order();
+        order.setCustomerName(user.getFullName() != null && !user.getFullName().isEmpty() ? user.getFullName() : user.getUsername());
+        order.setFullName(user.getFullName());
         order.setShippingAddress(address);
         order.setPhone(phone);
         order.setEmail(email);
         double total = 0.0;
-        int totalQuantity = 0;
-        if (cart != null) {
-            for (CartItem item : cart) {
-                total += item.getPrice() * item.getQuantity();
-                totalQuantity += item.getQuantity();
-            }
+        java.util.List<com.laptrinhjavaweb.model.OrderDetail> orderDetails = new java.util.ArrayList<>();
+        for (CartItem item : cart) {
+            System.out.println("CartItem: id=" + item.getId() + ", name=" + item.getName() + ", price=" + item.getPrice() + ", quantity=" + item.getQuantity());
+            com.laptrinhjavaweb.model.OrderDetail detail = new com.laptrinhjavaweb.model.OrderDetail();
+            detail.setPetId(item.getId());
+            detail.setQuantity(item.getQuantity());
+            detail.setPriceAtTime(item.getPrice());
+            orderDetails.add(detail);
+            total += item.getPrice() * item.getQuantity();
         }
+        order.setOrderDetails(orderDetails);
         order.setTotalAmount(total);
-        // Optionally, if your Order model supports it:
-        // order.setTotalQuantity(totalQuantity);
-        request.setAttribute("totalPrice", total);
-        request.setAttribute("totalQuantity", totalQuantity);
+        order.setStatus("pending");
         orderDAO.createOrder(order);
-        // Clear cart from session
-        HttpSession session = request.getSession();
+        // Remove cart from session after order is placed
         session.removeAttribute("cart");
-        // Redirect to order confirmation
-        response.sendRedirect(request.getContextPath() + "/order-confirmation?id=" + order.getOrderId());
+        request.setAttribute("order", order);
+        request.setAttribute("cart", cart);
+        request.setAttribute("totalPrice", total);
+        RequestDispatcher rd = request.getRequestDispatcher("/views/web/order-confirmation.jsp");
+        rd.forward(request, response);
     }
 }
