@@ -78,7 +78,7 @@ public class CartController extends HttpServlet {
             }
         }
         session.setAttribute(CART_SESSION_KEY, cart);
-        resp.sendRedirect(req.getContextPath() + "/views/web/cart.jsp");
+        resp.sendRedirect(req.getContextPath() + "/cart");
     }
 
     @SuppressWarnings("unchecked")

@@ -95,7 +95,7 @@
         </div>
     </div>
     <div style="text-align:center; margin: 2rem 0;">
-        <a href="${pageContext.request.contextPath}/cart" class="btn" style="font-size:1.2rem; padding: 14px 32px; background: #ff9800; color: white; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-weight: bold; letter-spacing: 1px;">🛒 View Cart</a>
+        <a href="${pageContext.request.contextPath}/cart" class="btn" style="font-size:1.2rem; padding: 14px 32px; background: #ffc107; color: #000; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); font-weight: bold; letter-spacing: 1px;">🛒 View Cart</a>
     </div>
 
     <div class="container">

@@ -62,8 +62,18 @@ public class CheckoutController extends HttpServlet {
         String address = request.getParameter("address");
         HttpSession session = request.getSession();
         java.util.List<CartItem> cart = (java.util.List<CartItem>) session.getAttribute("cart");
+        double total = 0.0;
         if (cart == null || cart.isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/shopping?error=emptycart");
+            return;
+        }
+        // Validate required fields
+        if (fullName == null || fullName.isBlank() || email == null || email.isBlank() || phone == null || phone.isBlank() || address == null || address.isBlank()) {
+            request.setAttribute("errorMessage", "Please fill in all required fields (Full Name, Email, Phone, Address).");
+            request.setAttribute("cart", cart);
+            for (CartItem item : cart) total += item.getPrice() * item.getQuantity();
+            request.setAttribute("totalPrice", total);
+            request.getRequestDispatcher("/views/web/checkout.jsp").forward(request, response);
             return;
         }
         // Check if user exists by email, if not, create
@@ -93,7 +103,7 @@ public class CheckoutController extends HttpServlet {
         order.setShippingAddress(address);
         order.setPhone(phone);
         order.setEmail(email);
-        double total = 0.0;
+        double totalAmount = 0.0;
         java.util.List<com.laptrinhjavaweb.model.OrderDetail> orderDetails = new java.util.ArrayList<>();
         for (CartItem item : cart) {
             System.out.println("CartItem: id=" + item.getId() + ", name=" + item.getName() + ", price=" + item.getPrice() + ", quantity=" + item.getQuantity());
@@ -102,17 +112,17 @@ public class CheckoutController extends HttpServlet {
             detail.setQuantity(item.getQuantity());
             detail.setPriceAtTime(item.getPrice());
             orderDetails.add(detail);
-            total += item.getPrice() * item.getQuantity();
+            totalAmount += item.getPrice() * item.getQuantity();
         }
         order.setOrderDetails(orderDetails);
-        order.setTotalAmount(total);
+        order.setTotalAmount(totalAmount);
         order.setStatus("pending");
         orderDAO.createOrder(order);
         // Remove cart from session after order is placed
         session.removeAttribute("cart");
         request.setAttribute("order", order);
         request.setAttribute("cart", cart);
-        request.setAttribute("totalPrice", total);
+        request.setAttribute("totalPrice", totalAmount);
         RequestDispatcher rd = request.getRequestDispatcher("/views/web/order-confirmation.jsp");
         rd.forward(request, response);
     }

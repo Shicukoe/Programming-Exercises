@@ -42,6 +42,9 @@ public class OrderController extends HttpServlet {
                 System.out.println("Failed to inject orderDAO: " + e.getMessage());
             }
         }
+        if (petDAO == null) {
+            petDAO = new com.laptrinhjavaweb.dao.impl.PetDAO();
+        }
     }
 
     @Override

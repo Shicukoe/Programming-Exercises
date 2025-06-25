@@ -80,7 +80,6 @@
                 <label for="address">Shipping Address *</label>
                 <input type="text" id="address" name="address" required>
             </div>
-            <input type="hidden" name="cartData" id="cartDataInput">
             <div class="order-summary">
                 <h3>Order Summary</h3>
                 <table style="width:100%; border-collapse:collapse;">
@@ -113,10 +112,5 @@
             <button type="submit" class="btn">Continue to Summary</button>
         </form>
     </div>
-    <script>
-        // On page load, set cartDataInput value from sessionStorage
-        const cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
-        document.getElementById('cartDataInput').value = JSON.stringify(cart);
-    </script>
 </body>
 </html>

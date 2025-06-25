@@ -53,6 +53,12 @@
             color: #888;
             padding: 2rem 0;
         }
+        .flex-container {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 1.5rem;
+        }
     </style>
 </head>
 <body>
@@ -108,8 +114,13 @@
                 <td><strong>$<%= String.format("%.2f", total) %></strong></td>
             </tr>
         </table>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:1.5rem;">
+            <a href="${pageContext.request.contextPath}/shopping" class="btn" style="background:#4CAF50; color:#000; font-size:1rem; padding:8px 20px; border-radius:4px; font-weight:bold; letter-spacing:0.5px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">Continue Shopping</a>
+            <form action="${pageContext.request.contextPath}/checkout" method="post" style="display:inline;">
+                <button class="btn" type="submit" style="background:#ffc107; color:#000; font-size:1rem; padding:8px 20px; border-radius:4px; font-weight:bold; letter-spacing:0.5px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">Proceed to Checkout</button>
+            </form>
+        </div>
     <% } %>
-    <a href="${pageContext.request.contextPath}/shopping" class="btn">Continue Shopping</a>
 </div>
 </body>
 </html>
