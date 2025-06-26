@@ -56,10 +56,6 @@ public class CheckoutController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        String fullName = request.getParameter("fullName");
-        String email = request.getParameter("email");
-        String phone = request.getParameter("phone");
-        String address = request.getParameter("address");
         HttpSession session = request.getSession();
         java.util.List<CartItem> cart = (java.util.List<CartItem>) session.getAttribute("cart");
         double total = 0.0;
@@ -67,46 +63,115 @@ public class CheckoutController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/shopping?error=emptycart");
             return;
         }
-        // Validate required fields
-        if (fullName == null || fullName.isBlank() || email == null || email.isBlank() || phone == null || phone.isBlank() || address == null || address.isBlank()) {
-            request.setAttribute("errorMessage", "Please fill in all required fields (Full Name, Email, Phone, Address).");
+        // If not logged in, show login/register form
+        String loggedInUser = (String) session.getAttribute("username");
+        String action = request.getParameter("action");
+        if (loggedInUser == null && action == null) {
+            // Show login/register form
             request.setAttribute("cart", cart);
             for (CartItem item : cart) total += item.getPrice() * item.getQuantity();
             request.setAttribute("totalPrice", total);
-            request.getRequestDispatcher("/views/web/checkout.jsp").forward(request, response);
+            request.getRequestDispatcher("/views/web/checkout-auth.jsp").forward(request, response);
             return;
         }
-        // Check if user exists by email, if not, create
         com.laptrinhjavaweb.model.Users user = null;
-        for (com.laptrinhjavaweb.model.Users u : userDAO.getAllCustomers()) {
-            if (u.getEmail() != null && u.getEmail().equalsIgnoreCase(email)) {
-                user = u;
-                break;
+        boolean justRegistered = false;
+        // Handle login
+        if ("login".equals(action)) {
+            String username = request.getParameter("loginUsername");
+            String password = request.getParameter("loginPassword");
+            user = userDAO.getUserByUsernameAndPassword(username, password);
+            if (user == null) {
+                request.setAttribute("errorMessage", "Invalid username or password.");
+                request.setAttribute("cart", cart);
+                for (CartItem item : cart) total += item.getPrice() * item.getQuantity();
+                request.setAttribute("totalPrice", total);
+                request.getRequestDispatcher("/views/web/checkout-auth.jsp").forward(request, response);
+                return;
+            }
+            session.setAttribute("username", user.getUsername());
+            session.setAttribute("role", user.getRole());
+            // Continue to order creation below (no redirect)
+        }
+        // Handle register
+        if ("register".equals(action)) {
+            String username = request.getParameter("regUsername");
+            String password = request.getParameter("regPassword");
+            String fullName = request.getParameter("regFullName");
+            String email = request.getParameter("regEmail");
+            String phone = request.getParameter("regPhone");
+            String address = request.getParameter("regAddress");
+            if (username == null || username.isBlank() || password == null || password.isBlank() || fullName == null || fullName.isBlank() || email == null || email.isBlank() || phone == null || phone.isBlank() || address == null || address.isBlank()) {
+                request.setAttribute("errorMessage", "Please fill in all registration fields.");
+                request.setAttribute("cart", cart);
+                for (CartItem item : cart) total += item.getPrice() * item.getQuantity();
+                request.setAttribute("totalPrice", total);
+                request.getRequestDispatcher("/views/web/checkout-auth.jsp").forward(request, response);
+                return;
+            }
+            // Check if username or email exists
+            for (com.laptrinhjavaweb.model.Users u : userDAO.getAllCustomers()) {
+                if (u.getUsername().equalsIgnoreCase(username)) {
+                    request.setAttribute("errorMessage", "Username already exists.");
+                    request.setAttribute("cart", cart);
+                    for (CartItem item : cart) total += item.getPrice() * item.getQuantity();
+                    request.setAttribute("totalPrice", total);
+                    request.getRequestDispatcher("/views/web/checkout-auth.jsp").forward(request, response);
+                    return;
+                }
+                if (u.getEmail().equalsIgnoreCase(email)) {
+                    request.setAttribute("errorMessage", "Email already exists.");
+                    request.setAttribute("cart", cart);
+                    for (CartItem item : cart) total += item.getPrice() * item.getQuantity();
+                    request.setAttribute("totalPrice", total);
+                    request.getRequestDispatcher("/views/web/checkout-auth.jsp").forward(request, response);
+                    return;
+                }
+            }
+            com.laptrinhjavaweb.model.Users newUser = new com.laptrinhjavaweb.model.Users();
+            newUser.setUsername(username);
+            newUser.setPassword(password);
+            newUser.setFullName(fullName);
+            newUser.setEmail(email);
+            newUser.setPhone(phone);
+            newUser.setAddress(address);
+            newUser.setRole("customer");
+            userDAO.createCustomer(newUser);
+            session.setAttribute("username", newUser.getUsername());
+            session.setAttribute("role", newUser.getRole());
+            user = newUser;
+            justRegistered = true;
+            // No redirect or return here, continue to order creation below
+        }
+        if (user == null && !justRegistered) {
+            // At this point, user is logged in (either just logged in or was already logged in)
+            String username = (String) session.getAttribute("username");
+            for (com.laptrinhjavaweb.model.Users u : userDAO.getAllCustomers()) {
+                if (u.getUsername().equalsIgnoreCase(username)) {
+                    user = u;
+                    break;
+                }
             }
         }
-        if (user == null) {
-            user = new com.laptrinhjavaweb.model.Users();
-            user.setEmail(email);
-            user.setFullName(fullName);
-            user.setAddress(address);
-            user.setPhone(phone);
-            user.setRole("customer");
-            // Generate a username and password for guest (or leave blank/null)
-            user.setUsername(email);
-            user.setPassword("");
-            userDAO.createCustomer(user);
-        }
         // Create order
+        if (user == null) {
+            request.setAttribute("errorMessage", "User information not found. Please log in again.");
+            request.setAttribute("cart", cart);
+            for (CartItem item : cart) total += item.getPrice() * item.getQuantity();
+            request.setAttribute("totalPrice", total);
+            request.getRequestDispatcher("/views/web/checkout-auth.jsp").forward(request, response);
+            return;
+        }
+        // Use justRegisteredUser if available (registration flow)
         com.laptrinhjavaweb.model.Order order = new com.laptrinhjavaweb.model.Order();
-        order.setCustomerName(user.getFullName() != null && !user.getFullName().isEmpty() ? user.getFullName() : user.getUsername());
+        order.setCustomerName(user.getUsername()); // FIX: must be username for FK
         order.setFullName(user.getFullName());
-        order.setShippingAddress(address);
-        order.setPhone(phone);
-        order.setEmail(email);
+        order.setShippingAddress(user.getAddress());
+        order.setPhone(user.getPhone());
+        order.setEmail(user.getEmail());
         double totalAmount = 0.0;
         java.util.List<com.laptrinhjavaweb.model.OrderDetail> orderDetails = new java.util.ArrayList<>();
         for (CartItem item : cart) {
-            System.out.println("CartItem: id=" + item.getId() + ", name=" + item.getName() + ", price=" + item.getPrice() + ", quantity=" + item.getQuantity());
             com.laptrinhjavaweb.model.OrderDetail detail = new com.laptrinhjavaweb.model.OrderDetail();
             detail.setPetId(item.getId());
             detail.setQuantity(item.getQuantity());

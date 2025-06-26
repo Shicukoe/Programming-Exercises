@@ -32,8 +32,10 @@ public class OrderDAO extends AbstractDAO<Order> implements iOrderDAO {
     public void createOrder(Order order) {
         String sql = "INSERT INTO Orders (customer_name, full_name, shipping_address, phone, email, total_amount, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
         Connection conn = connect();
+        PreparedStatement stmt = null;
+        ResultSet generatedKeys = null;
         try {
-            PreparedStatement stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+            stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
             stmt.setString(1, order.getCustomerName());
             stmt.setString(2, order.getFullName());
             stmt.setString(3, order.getShippingAddress());
@@ -42,7 +44,7 @@ public class OrderDAO extends AbstractDAO<Order> implements iOrderDAO {
             stmt.setDouble(6, order.getTotalAmount());
             stmt.setString(7, order.getStatus() != null ? order.getStatus() : "pending");
             stmt.executeUpdate();
-            ResultSet generatedKeys = stmt.getGeneratedKeys();
+            generatedKeys = stmt.getGeneratedKeys();
             int orderId = -1;
             if (generatedKeys.next()) {
                 orderId = generatedKeys.getInt(1);
@@ -50,17 +52,28 @@ public class OrderDAO extends AbstractDAO<Order> implements iOrderDAO {
             // Insert order details
             if (order.getOrderDetails() != null && orderId != -1) {
                 String detailSql = "INSERT INTO OrderDetails (order_id, pet_id, quantity, price_at_time) VALUES (?, ?, ?, ?)";
-                for (OrderDetail detail : order.getOrderDetails()) {
-                    PreparedStatement detailStmt = conn.prepareStatement(detailSql);
-                    detailStmt.setInt(1, orderId);
-                    detailStmt.setInt(2, detail.getPetId());
-                    detailStmt.setInt(3, detail.getQuantity());
-                    detailStmt.setDouble(4, detail.getPriceAtTime());
-                    detailStmt.executeUpdate();
+                PreparedStatement detailStmt = null;
+                try {
+                    for (OrderDetail detail : order.getOrderDetails()) {
+                        detailStmt = conn.prepareStatement(detailSql);
+                        detailStmt.setInt(1, orderId);
+                        detailStmt.setInt(2, detail.getPetId());
+                        detailStmt.setInt(3, detail.getQuantity());
+                        detailStmt.setDouble(4, detail.getPriceAtTime());
+                        detailStmt.executeUpdate();
+                        detailStmt.close();
+                    }
+                } finally {
+                    if (detailStmt != null) detailStmt.close();
                 }
             }
         } catch (SQLException e) {
             System.out.println("Failed to create order: " + e.getMessage());
+            throw new RuntimeException("Failed to create order", e);
+        } finally {
+            try { if (generatedKeys != null) generatedKeys.close(); } catch (SQLException ignore) {}
+            try { if (stmt != null) stmt.close(); } catch (SQLException ignore) {}
+            try { if (conn != null) conn.close(); } catch (SQLException ignore) {}
         }
     }
 

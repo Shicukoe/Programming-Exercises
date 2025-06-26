@@ -66,6 +66,7 @@ public class LoginController extends HttpServlet {
                 HttpSession session = request.getSession();
                 session.setAttribute("loggedUser", user);
                 session.setAttribute("role", user.getRole()); // Ensure role is set for admin check
+                session.setAttribute("username", user.getUsername()); // Ensure username is set for header
 
                 // Redirect based on user role
                 if ("Admin".equalsIgnoreCase(user.getRole())) {

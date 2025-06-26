@@ -48,7 +48,11 @@ public class UserDAO extends AbstractDAO<Users> implements iUserDAO {
             stmt.setString(1, customer.getUsername());
             stmt.setString(2, customer.getPassword());
             stmt.setString(3, customer.getFullName());
-            stmt.setDate(4, customer.getBirthday());
+            if (customer.getBirthday() != null) {
+                stmt.setDate(4, customer.getBirthday());
+            } else {
+                stmt.setNull(4, java.sql.Types.DATE);
+            }
             stmt.setString(5, customer.getAddress());
             stmt.setString(6, customer.getEmail());
             stmt.setString(7, customer.getPhone());

@@ -6,9 +6,17 @@
     </div>
     <div class="header__menu">
       <ul>
-        <li>
-          <a href="${pageContext.request.contextPath}/dang-nhap" login-button>Login</a>
-        </li>
+        <c:choose>
+          <c:when test="${not empty sessionScope.username}">
+            <li style="font-weight:bold; color:#ffc107;">Welcome, ${sessionScope.username}!</li>
+            <li><a href="${pageContext.request.contextPath}/logout">Logout</a></li>
+          </c:when>
+          <c:otherwise>
+            <li>
+              <a href="${pageContext.request.contextPath}/dang-nhap" login-button>Login</a>
+            </li>
+          </c:otherwise>
+        </c:choose>
       </ul>
     </div>
   </header>
