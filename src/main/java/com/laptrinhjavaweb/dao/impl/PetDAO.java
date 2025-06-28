@@ -85,6 +85,55 @@ public class PetDAO extends AbstractDAO<Pet> implements iPetDAO {
         String sql = "SELECT * FROM Pets WHERE type = ? ORDER BY created_at DESC";
         return query(sql, new PetMapper(), type);
     }
+    
+    @Override
+    public List<Pet> filterPets(String type, String breed, Double minPrice, Double maxPrice, String gender) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM Pets WHERE 1=1");
+        java.util.List<Object> params = new java.util.ArrayList<>();
+        if (type != null && !type.isEmpty()) {
+            sql.append(" AND type = ?");
+            params.add(type);
+        }
+        if (breed != null && !breed.isEmpty()) {
+            sql.append(" AND breed = ?");
+            params.add(breed);
+        }
+        if (minPrice != null) {
+            sql.append(" AND price >= ?");
+            params.add(minPrice);
+        }
+        if (maxPrice != null) {
+            sql.append(" AND price <= ?");
+            params.add(maxPrice);
+        }
+        if (gender != null && !gender.isEmpty()) {
+            sql.append(" AND gender = ?");
+            params.add(gender);
+        }
+        sql.append(" ORDER BY created_at DESC");
+        return query(sql.toString(), new PetMapper(), params.toArray());
+    }
+    
+    // New: get all unique pet types
+    public List<String> getAllTypes() {
+        String sql = "SELECT DISTINCT type FROM Pets ORDER BY type ASC";
+        List<String> types = new java.util.ArrayList<>();
+        java.sql.Connection conn = connect();
+        try {
+            java.sql.PreparedStatement stmt = conn.prepareStatement(sql);
+            java.sql.ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                types.add(rs.getString("type"));
+            }
+            rs.close();
+            stmt.close();
+        } catch (java.sql.SQLException e) {
+            System.out.println("Failed to get pet types: " + e.getMessage());
+        } finally {
+            try { conn.close(); } catch (Exception ignore) {}
+        }
+        return types;
+    }
 }
 
 

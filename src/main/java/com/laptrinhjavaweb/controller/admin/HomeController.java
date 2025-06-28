@@ -41,15 +41,28 @@ public class HomeController extends HttpServlet {
             rd.forward(request, response);
             return;
         }
-        
-        // Get all pets for inventory
-        List<Pet> pets = petService.findAll();
+        // Pet filters
+        String petType = request.getParameter("type");
+        String breed = request.getParameter("breed");
+        String minPriceStr = request.getParameter("minPrice");
+        String maxPriceStr = request.getParameter("maxPrice");
+        String gender = request.getParameter("gender");
+        Double minPrice = (minPriceStr != null && !minPriceStr.isEmpty()) ? Double.valueOf(minPriceStr) : null;
+        Double maxPrice = (maxPriceStr != null && !maxPriceStr.isEmpty()) ? Double.valueOf(maxPriceStr) : null;
+        List<Pet> pets = petService.filterPets(petType, breed, minPrice, maxPrice, gender);
         request.setAttribute("pets", pets);
-        
-        // Get all orders
-        List<Order> orders = orderService.getAllOrders();
+        // Order filters
+        String status = request.getParameter("status");
+        String startDateStr = request.getParameter("startDate");
+        String endDateStr = request.getParameter("endDate");
+        String customerName = request.getParameter("customerName");
+        java.sql.Timestamp startDate = (startDateStr != null && !startDateStr.isEmpty()) ? java.sql.Timestamp.valueOf(startDateStr + " 00:00:00") : null;
+        java.sql.Timestamp endDate = (endDateStr != null && !endDateStr.isEmpty()) ? java.sql.Timestamp.valueOf(endDateStr + " 23:59:59") : null;
+        List<Order> orders = orderService.filterOrders(status, startDate, endDate, customerName);
         request.setAttribute("orders", orders);
-        
+        // Fetch all unique pet types for admin filter
+        List<String> petTypes = petService.getAllTypes();
+        request.setAttribute("petTypes", petTypes);
         RequestDispatcher rd = request.getRequestDispatcher("/views/admin/home.jsp");
         rd.forward(request, response);
     }

@@ -39,28 +39,28 @@ public class ShoppingController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        
-        String petType = request.getParameter("type"); // Optional filter by pet type
-    Pet petList = new Pet(); // This is your model that extends AbstractModel<Pet>
-    List<Pet> pets;
-
-    if (petType != null && !petType.isEmpty()) {
-        pets = petService.findByType(petType);
-    } else {
-        pets = petService.findAll();
-    }
-
-    // Convert pet images to base64 if needed
-    for (Pet pet : pets) {
-        if (pet.getImage() != null) {
-            String base64Image = java.util.Base64.getEncoder().encodeToString(pet.getImage());
-            pet.setBase64Image(base64Image);
+        String petType = request.getParameter("type");
+        String breed = request.getParameter("breed");
+        String minPriceStr = request.getParameter("minPrice");
+        String maxPriceStr = request.getParameter("maxPrice");
+        String gender = request.getParameter("gender");
+        Double minPrice = (minPriceStr != null && !minPriceStr.isEmpty()) ? Double.valueOf(minPriceStr) : null;
+        Double maxPrice = (maxPriceStr != null && !maxPriceStr.isEmpty()) ? Double.valueOf(maxPriceStr) : null;
+        List<Pet> pets = petService.filterPets(petType, breed, minPrice, maxPrice, gender);
+        // Convert pet images to base64 if needed
+        for (Pet pet : pets) {
+            if (pet.getImage() != null) {
+                String base64Image = java.util.Base64.getEncoder().encodeToString(pet.getImage());
+                pet.setBase64Image(base64Image);
+            }
         }
-    }
-
-    petList.setListResult(pets);
-    request.setAttribute("petList", petList);
-
+        Pet petList = new Pet();
+        petList.setListResult(pets);
+        request.setAttribute("petList", petList);
+        
+        List<String> petTypes = petService.getAllTypes();
+        request.setAttribute("petTypes", petTypes);
+        
         RequestDispatcher rd = request.getRequestDispatcher("/views/web/shopping.jsp");
         rd.forward(request, response);
     }

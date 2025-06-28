@@ -160,6 +160,41 @@
         <!-- Inventory Tab -->
         <div class="tab-content active" id="inventory">
             <h2>Pet Inventory</h2>
+            <!-- Pet Filter Form -->
+            <form method="get" action="admin-home" style="display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end; margin-bottom:1rem;">
+                <div>
+                    <label for="type">Type</label>
+                    <select name="type" id="type">
+                        <option value="">All</option>
+                        <c:forEach var="type" items="${petTypes}">
+                            <option value="${type}" ${param.type == type ? 'selected' : ''}>${type}</option>
+                        </c:forEach>
+                    </select>
+                </div>
+                <div>
+                    <label for="breed">Breed</label>
+                    <input type="text" name="breed" id="breed" value="${fn:escapeXml(param.breed)}" placeholder="Any breed" />
+                </div>
+                <div>
+                    <label for="minPrice">Min Price</label>
+                    <input type="number" step="0.01" name="minPrice" id="minPrice" value="${fn:escapeXml(param.minPrice)}" min="0" />
+                </div>
+                <div>
+                    <label for="maxPrice">Max Price</label>
+                    <input type="number" step="0.01" name="maxPrice" id="maxPrice" value="${fn:escapeXml(param.maxPrice)}" min="0" />
+                </div>
+                <div>
+                    <label for="gender">Gender</label>
+                    <select name="gender" id="gender">
+                        <option value="">All</option>
+                        <option value="Male" ${param.gender == 'Male' ? 'selected' : ''}>Male</option>
+                        <option value="Female" ${param.gender == 'Female' ? 'selected' : ''}>Female</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="submit-btn" type="submit">Filter</button>
+                </div>
+            </form>
             <table>
                 <thead>
                     <tr>
@@ -203,6 +238,34 @@
         <!-- Orders Tab -->
         <div class="tab-content" id="orders">
             <h2>Order Management</h2>
+            <!-- Order Filter Form -->
+            <form method="get" action="admin-home" style="display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end; margin-bottom:1rem;">
+                <div>
+                    <label for="status">Status</label>
+                    <select name="status" id="status">
+                        <option value="">All</option>
+                        <option value="pending" ${param.status == 'pending' ? 'selected' : ''}>Pending</option>
+                        <option value="processing" ${param.status == 'processing' ? 'selected' : ''}>Processing</option>
+                        <option value="completed" ${param.status == 'completed' ? 'selected' : ''}>Completed</option>
+                        <option value="cancelled" ${param.status == 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="startDate">Start Date</label>
+                    <input type="date" name="startDate" id="startDate" value="${fn:escapeXml(param.startDate)}" />
+                </div>
+                <div>
+                    <label for="endDate">End Date</label>
+                    <input type="date" name="endDate" id="endDate" value="${fn:escapeXml(param.endDate)}" />
+                </div>
+                <div>
+                    <label for="customerName">Customer</label>
+                    <input type="text" name="customerName" id="customerName" value="${fn:escapeXml(param.customerName)}" placeholder="Any customer" />
+                </div>
+                <div>
+                    <button class="submit-btn" type="submit">Filter</button>
+                </div>
+            </form>
             <table>
                 <thead>
                     <tr>

@@ -11,4 +11,6 @@ public interface iNewService {
     void update(Pet pet);
     void delete(int id);
     List<Pet> findByType(String type);
+    List<Pet> filterPets(String type, String breed, Double minPrice, Double maxPrice, String gender);
+    List<String> getAllTypes();
 }

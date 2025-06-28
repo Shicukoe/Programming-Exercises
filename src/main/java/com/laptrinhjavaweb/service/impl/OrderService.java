@@ -53,4 +53,9 @@ public class OrderService implements iOrderService {
     public void deleteOrderWithItems(int orderId) {
         orderDAO.deleteOrderWithItems(orderId);
     }
+
+    @Override
+    public List<Order> filterOrders(String status, java.sql.Timestamp startDate, java.sql.Timestamp endDate, String customerName) {
+        return orderDAO.filterOrders(status, startDate, endDate, customerName);
+    }
 }

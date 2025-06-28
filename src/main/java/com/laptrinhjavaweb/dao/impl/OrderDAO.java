@@ -138,4 +138,28 @@ public class OrderDAO extends AbstractDAO<Order> implements iOrderDAO {
             System.out.println("Failed to delete order: " + e.getMessage());
         }
     }
+
+    @Override
+    public List<Order> filterOrders(String status, java.sql.Timestamp startDate, java.sql.Timestamp endDate, String customerName) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM Orders WHERE 1=1");
+        java.util.List<Object> params = new java.util.ArrayList<>();
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND status = ?");
+            params.add(status);
+        }
+        if (startDate != null) {
+            sql.append(" AND order_date >= ?");
+            params.add(startDate);
+        }
+        if (endDate != null) {
+            sql.append(" AND order_date <= ?");
+            params.add(endDate);
+        }
+        if (customerName != null && !customerName.isEmpty()) {
+            sql.append(" AND customer_name = ?");
+            params.add(customerName);
+        }
+        sql.append(" ORDER BY order_date DESC");
+        return query(sql.toString(), new OrderMapper(), params.toArray());
+    }
 }

@@ -14,4 +14,6 @@ public interface iOrderDAO extends GenericDAO<Order> {
     // New methods
     List<OrderDetail> findOrderItems(int orderId);
     void deleteOrderWithItems(int orderId);
+    // New: filter by status, date range, customer name
+    List<Order> filterOrders(String status, java.sql.Timestamp startDate, java.sql.Timestamp endDate, String customerName);
 }

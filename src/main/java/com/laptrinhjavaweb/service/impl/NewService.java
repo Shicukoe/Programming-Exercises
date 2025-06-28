@@ -47,4 +47,14 @@ public class NewService implements iNewService {
     public List<Pet> findByType(String type) {
         return petDAO.findByType(type);
     }
+
+    @Override
+    public List<Pet> filterPets(String type, String breed, Double minPrice, Double maxPrice, String gender) {
+        return petDAO.filterPets(type, breed, minPrice, maxPrice, gender);
+    }
+
+    // New: get all unique pet types
+    public List<String> getAllTypes() {
+        return petDAO.getAllTypes();
+    }
 }

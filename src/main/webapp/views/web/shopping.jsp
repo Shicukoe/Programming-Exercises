@@ -77,6 +77,18 @@
             padding: 2px 6px;
             font-size: 0.8rem;
         }
+        input, select {
+            width: 100%;
+            font-size: 1rem;
+            padding: 0.4rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border: 1px solid #4CAF50;
+            box-shadow: 0 0 2px #4CAF50;
+        }
     </style>
 </head>
 <body>
@@ -99,6 +111,43 @@
     </div>
 
     <div class="container">
+        <!-- Filter Form -->
+        <div class="pet-section" style="margin-bottom:2rem;">
+            <form method="get" action="${pageContext.request.contextPath}/shopping" style="display:grid; grid-template-columns: repeat(6, 1fr) 100px; gap:1.2rem; align-items:center; justify-items:start; background:#fafbfa; padding:1.2rem 1rem; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                <div style="display:flex; flex-direction:column; width:100%;">
+                    <label for="type" style="font-size:1rem; font-weight:bold; margin-bottom:2px;">Type</label>
+                    <select name="type" id="type" style="width:100%; font-size:1rem; padding:0.4rem; border-radius:4px;">
+                        <option value="">All</option>
+                        <c:forEach var="type" items="${petTypes}">
+                            <option value="${type}" ${param.type == type ? 'selected' : ''}>${type}</option>
+                        </c:forEach>
+                    </select>
+                </div>
+                <div style="display:flex; flex-direction:column; width:100%;">
+                    <label for="breed" style="font-size:1rem; font-weight:bold; margin-bottom:2px;">Breed</label>
+                    <input type="text" name="breed" id="breed" value="${fn:escapeXml(param.breed)}" placeholder="Any breed" style="width:100%; font-size:1rem; padding:0.4rem; border-radius:4px;" />
+                </div>
+                <div style="display:flex; flex-direction:column; width:100%;">
+                    <label for="minPrice" style="font-size:1rem; font-weight:bold; margin-bottom:2px;">Min Price</label>
+                    <input type="number" step="0.01" name="minPrice" id="minPrice" value="${fn:escapeXml(param.minPrice)}" min="0" style="width:100%; font-size:1rem; padding:0.4rem; border-radius:4px;" />
+                </div>
+                <div style="display:flex; flex-direction:column; width:100%;">
+                    <label for="maxPrice" style="font-size:1rem; font-weight:bold; margin-bottom:2px;">Max Price</label>
+                    <input type="number" step="0.01" name="maxPrice" id="maxPrice" value="${fn:escapeXml(param.maxPrice)}" min="0" style="width:100%; font-size:1rem; padding:0.4rem; border-radius:4px;" />
+                </div>
+                <div style="display:flex; flex-direction:column; width:100%;">
+                    <label for="gender" style="font-size:1rem; font-weight:bold; margin-bottom:2px;">Gender</label>
+                    <select name="gender" id="gender" style="width:100%; font-size:1rem; padding:0.4rem; border-radius:4px;">
+                        <option value="">All</option>
+                        <option value="Male" ${param.gender == 'Male' ? 'selected' : ''}>Male</option>
+                        <option value="Female" ${param.gender == 'Female' ? 'selected' : ''}>Female</option>
+                    </select>
+                </div>
+                <div style="align-self:end; justify-self:end;">
+                    <button class="btn" type="submit" style="font-size:1rem; padding:0.6rem 1.6rem; border-radius:4px;">Filter</button>
+                </div>
+            </form>
+        </div>
         <!-- Pet sections will be dynamically loaded -->
         <div class="pet-section">
             <h2>Available Pets</h2>
