@@ -36,28 +36,29 @@ CREATE TABLE Pets (
         ON UPDATE CASCADE
 );
 
--- Orders table
+-- Orders table (with full_name, address, email, phone, and customer_name as username)
 CREATE TABLE Orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_name VARCHAR(50) NOT NULL,
-    total_amount DECIMAL(10,2) NOT NULL CHECK (total_amount >= 0),
-    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('pending', 'processing', 'completed', 'cancelled') DEFAULT 'pending',
+    customer_name VARCHAR(50) NOT NULL,         -- username (FK to Users)
+    full_name VARCHAR(100) NOT NULL,            -- snapshot of name at order time
     shipping_address TEXT NOT NULL,
     phone VARCHAR(15) NOT NULL,
     email VARCHAR(100) NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL CHECK (total_amount >= 0),
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('pending', 'processing', 'completed', 'cancelled') DEFAULT 'pending',
     FOREIGN KEY (customer_name) REFERENCES Users(username)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
--- Order Details table
+-- OrderDetails table
 CREATE TABLE OrderDetails (
     order_detail_id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
     pet_id INT NOT NULL,
     quantity INT NOT NULL CHECK (quantity > 0),
-    price_at_time DECIMAL(10,2) NOT NULL,
+    price_at_time DECIMAL(10,2) NOT NULL,orders
     FOREIGN KEY (order_id) REFERENCES Orders(order_id)
         ON DELETE CASCADE,
     FOREIGN KEY (pet_id) REFERENCES Pets(pet_id)
@@ -68,10 +69,6 @@ CREATE TABLE OrderDetails (
 INSERT INTO Users (username, password, role, full_name, email) VALUES 
     ('tus', '123', 'admin', 'Admin Tus', 'tus@admin.com'),
     ('sang', '321', 'admin', 'Admin Sang', 'sang@admin.com');
-    
-UPDATE Users
-SET full_name = 'Admin Son'
-WHERE username = 'son';
 
 -- Grant permissions
 GRANT ALL PRIVILEGES ON PetShopDB.* TO 'root'@'localhost';
@@ -84,11 +81,4 @@ DROP TABLE Pets;
 DROP TABLE Users;
 DROP DATABASE PetShopDB;
 
-INSERT INTO Pets (
-    name, price, type, breed, age, gender, description, image, added_by
-)
-VALUES (
-    'Luna', 220.00, 'Cat', 'Persian', 2, 'Female', 'Calm and fluffy.', NULL, 'tus'
-);
 
-ALTER TABLE users MODIFY password VARCHAR(255) NULL;
