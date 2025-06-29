@@ -371,7 +371,7 @@
     </div>
 
     <!-- Messenger Chat Button with original style -->
-    <a href="https://business.facebook.com/latest/inbox/messenger?asset_id=691110987420603" target="_blank" class="submit-btn" id="chat-toggle"
+    <a href="https://www.facebook.com/profile.php?id=61577835711654" target="_blank" class="submit-btn" id="chat-toggle"
        style="position: fixed; bottom: 20px; right: 20px; border-radius: 50%; width: 60px; height: 60px; font-size: 24px; display: flex; align-items: center; justify-content: center; text-decoration: none; background: #4CAF50; color: white;">
         💬
     </a>

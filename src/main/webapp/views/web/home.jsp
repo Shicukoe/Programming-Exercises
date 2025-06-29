@@ -14,10 +14,27 @@
             background-color: #f4f4f4;
         }
         header {
+            position: relative;
             background-color: #4CAF50;
             color: white;
             padding: 1rem;
+            min-height: 100px;
+        }
+        .logo {
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            left: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .header-text {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
             text-align: center;
+            width: max-content;
         }
         .container {
             max-width: 1200px;
@@ -102,10 +119,12 @@
     </style>
 </head>
 <body>
-    <header class="header-banner">
-        <img src="${pageContext.request.contextPath}/template/web/assets/images/logo.png" style="width: 100px;height: 100px;float: left;" alt="Monito Logo" class="logo">
-        <h1>Welcome to Monito Pet Shop</h1>
-        <p>Your one-stop shop for all pet needs</p>
+    <header class="header-banner" style="position: relative; background-color: #4CAF50; color: white; padding: 1rem; min-height: 100px;">
+        <img src="${pageContext.request.contextPath}/template/web/assets/images/logo.png" style="width: 100px; height: 100px; position: absolute; left: 1.5rem; top: 50%; transform: translateY(-50%);" alt="Monito Logo" class="logo">
+        <div style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; width: max-content;">
+            <h1 style="margin: 0;">Welcome to Monito Pet Shop</h1>
+            <p style="margin: 0;">Your one-stop shop for all pet needs</p>
+        </div>
     </header>
 
     <div class="main-banner-row" style="display: flex; align-items: stretch; justify-content: space-between; margin-bottom: 2rem; min-height: 70vh;">
