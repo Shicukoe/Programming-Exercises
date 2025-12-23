@@ -48,8 +48,7 @@ CREATE TABLE Orders (
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status ENUM('pending', 'processing', 'completed', 'cancelled') DEFAULT 'pending',
     FOREIGN KEY (customer_name) REFERENCES Users(username)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
+        ON DELETE NO ACTION
 );
 
 -- OrderDetails table
@@ -58,7 +57,7 @@ CREATE TABLE OrderDetails (
     order_id INT NOT NULL,
     pet_id INT NOT NULL,
     quantity INT NOT NULL CHECK (quantity > 0),
-    price_at_time DECIMAL(10,2) NOT NULL,orders
+    price_at_time DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES Orders(order_id)
         ON DELETE CASCADE,
     FOREIGN KEY (pet_id) REFERENCES Pets(pet_id)
