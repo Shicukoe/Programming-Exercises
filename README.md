@@ -99,5 +99,12 @@ The database was designed to ensure data consistency and support transactional o
 
 * MySQL
 
+---
+
+## Project Report
+
+The full technical report and documentation for this project are available here:
+
+* **Project Report (PDF):** [Project-of-Database-Web-Report.pdf](Project-of-Database-Web-Report.pdf)
 
 
